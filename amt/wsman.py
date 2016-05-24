@@ -144,6 +144,53 @@ def power_state_request(uri, power_state):
                    'power_state': POWER_STATES[power_state],
                    'uuid': uuid.uuid4()}
 
+def power_on_with_device(uri, boot_device):
+    stub = """<?xml version="1.0" encoding="UTF-8"?>
+    <s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:wsman="http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd" xmlns:n1="http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_PowerManagementService">
+    <s:Header>
+    <wsa:Action s:mustUnderstand="true">http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_PowerManagementService/RequestPowerStateChange</wsa:Action>
+    <wsa:To s:mustUnderstand="true">%(uri)s</wsa:To>
+    <wsman:ResourceURI s:mustUnderstand="true">http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_PowerManagementService</wsman:ResourceURI>
+    <wsa:MessageID s:mustUnderstand="true">uuid:%(uuid)s</wsa:MessageID>
+    <wsa:ReplyTo>
+        <wsa:Address>http://schemas.xmlsoap.org/ws/2004/08/addressing/role/anonymous</wsa:Address>
+    </wsa:ReplyTo>
+    <wsman:SelectorSet>
+       <wsman:Selector Name="Name">Intel(r) AMT Power Management Service</wsman:Selector>
+    </wsman:SelectorSet>
+    </s:Header>
+    <s:Body>
+      <n1:ChangeBootOrder_INPUT>
+        <n1:Source>
+          <wsa:Address>http://schemas.xmlsoap.org/ws/2004/08/addressing/role/anonymous</wsa:Address>
+          <wsa:ReferenceParameters>
+            <wsman:ResourceURI>http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_BootSourceSetting</wsman:ResourceURI>
+            <wsman:SelectorSet>
+                <wsman:Selector wsman:Name="InstanceID">%(boot_device)s</wsman:Selector>
+            </wsman:SelectorSet>
+         </wsa:ReferenceParameters>
+        </n1:Source>
+      </n1:ChangeBootOrder_INPUT>
+      <n1:RequestPowerStateChange_INPUT>
+        <n1:PowerState>%(power_state)d</n1:PowerState>
+        <n1:ManagedElement>
+          <wsa:Address>http://schemas.xmlsoap.org/ws/2004/08/addressing/role/anonymous</wsa:Address>
+          <wsa:ReferenceParameters>
+             <wsman:ResourceURI>http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_ComputerSystem</wsman:ResourceURI>
+             <wsman:SelectorSet>
+                <wsman:Selector wsman:Name="Name">ManagedSystem</wsman:Selector>
+             </wsman:SelectorSet>
+           </wsa:ReferenceParameters>
+         </n1:ManagedElement>
+       </n1:RequestPowerStateChange_INPUT>
+      </s:Body></s:Envelope>
+"""  # noqa
+    return stub % {'uri': uri,
+                   'boot_device': BOOT_DEVICES[boot_device],
+                   'power_state': POWER_STATES['on'],
+                   'uuid': uuid.uuid4()}
+
+
 
 def change_boot_to_pxe_request(uri):
     return change_boot_order_request(

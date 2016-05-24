@@ -104,6 +104,11 @@ class Client(object):
         payload = wsman.power_state_request(self.uri, "on")
         return self.post(payload, CIM_PowerManagementService)
 
+    def power_on_with_device(self, device):
+        """Power on the box with a specific boot device"""
+        payload = wsman.power_on_with_device(self.uri, device)
+        return self.post(payload, CIM_PowerManagementService)
+
     def power_off(self):
         """Power off the box."""
         payload = wsman.power_state_request(self.uri, "off")
